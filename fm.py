@@ -84,7 +84,7 @@ class FMClassifier(FMCore):
             self.total_loss, global_step=self.global_step)
 
     def predict_proba(self, sess, inp_x):
-        return self._predict(self, sess, inp_x)
+        return self._predict(sess, inp_x)
 
 
 class FMRegressor(FMCore):
@@ -103,7 +103,7 @@ class FMRegressor(FMCore):
             self.total_loss, global_step=self.global_step)
 
     def predict(self, sess, inp_x):
-        return self._predict(self, sess, inp_x)
+        return self._predict(sess, inp_x)
 
 
 if __name__ == '__main__':
