@@ -48,6 +48,9 @@ class FMCore(object):
         # saver and loader
         self.saver = tf.train.Saver()
 
+        # get embedding vector
+        self.embedding = self._sparse_mul(self.inp_x, self.V)
+
     def train_step(self, sess, inp_x, inp_y):
         input_dict = {
             self.inp_x: inp_x,
@@ -65,6 +68,11 @@ class FMCore(object):
         input_dict = {
             self.inp_x: inp_x}
         return sess.run(self.preds, feed_dict=input_dict)
+
+    def get_embedding(self, sess, inp_x):
+        input_dict = {
+            self.inp_x: inp_x}
+        return sess.run(self.embedding, feed_dict=input_dict)
 
 
 class FMClassifier(FMCore):
