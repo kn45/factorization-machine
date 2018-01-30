@@ -7,14 +7,10 @@ class FMCore(object):
     """
     def _sparse_mul(self, sp_x, w):
         """dense_res = sparse_x * dense_w
+        return dense matrix
         """
-        # tf.nn.embedding_lookup_sparse could achieve sparse gradient?
+        # this could achieve sparse gradient
         return tf.sparse_tensor_dense_matmul(sp_x, w, name='mul_sparse')
-
-    def _sparse_pow(self, x, p):
-        """sparse_res = pow(sparse_x, p)
-        """
-        return tf.SparseTensor(x.indices, tf.pow(x.values, p), x.dense_shape)
 
     def build_graph(self, inp_dim=None, hid_dim=8, lambda_w=0.0, lambda_v=0.0):
         self.inp_x = tf.sparse_placeholder(dtype=tf.float32, name='input_x')
@@ -34,6 +30,7 @@ class FMCore(object):
                 self.left = tf.pow(
                     self._sparse_mul(self.inp_x, self.V), 2)  # (bs, hid_dim)
             with tf.name_scope('2-way_right'):
+                # use tf.square supporting sparse_pow(x, 2)
                 self.right = self._sparse_mul(
                     tf.square(self.inp_x), tf.pow(self.V, 2))
             self.degree2 = tf.reduce_sum(
