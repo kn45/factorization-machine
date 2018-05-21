@@ -56,7 +56,7 @@ def idx_inp_fn(data, dim):
     return (x_idx, x_vals, x_shape), y_vals
 
 
-def libsvm_inp_fn(data):
+def libsvm_inp_fn(data, dim):
     bs = len(data)
     x_idx = []
     x_vals = []
@@ -72,7 +72,7 @@ def libsvm_inp_fn(data):
             x_idx.append([i, idx])
             x_vals.append(val)
         y_vals.append([label])
-    x_shape = [bs, INP_DIM]
+    x_shape = [bs, dim]
     return (x_idx, x_vals, x_shape), y_vals
 
 
