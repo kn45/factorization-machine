@@ -56,10 +56,10 @@ class FMCore(object):
         return train[0]
 
     def eval_step(self, sess, inp_x, inp_y):
-        input_dict = {
+        eval_dict = {
             self.inp_x: inp_x,
             self.inp_y: inp_y}
-        return sess.run(self.loss, feed_dict=input_dict)
+        return sess.run(self.loss, feed_dict=eval_dict)
 
     def _predict(self, sess, inp_x):
         input_dict = {
@@ -88,8 +88,21 @@ class FMClassifier(FMCore):
         self.opt = tf.train.AdamOptimizer(lr).minimize(
             self.total_loss, global_step=self.global_step)
 
+        self.auc, self.update_auc = tf.metrics.auc(
+                labels=self.inp_y,
+                predictions=self.preds,
+                num_thresholds=1000)
+
     def predict_proba(self, sess, inp_x):
         return self._predict(sess, inp_x)
+
+    def eval_auc(self, sess, inp_x, inp_y):
+        eval_dict = {
+            self.inp_x: inp_x,
+            self.inp_y: inp_y}
+        sess.run(tf.local_variables_initializer())
+        sess.run(self.update_auc, feed_dict=eval_dict)
+        return sess.run(self.auc)
 
 
 class FMRegressor(FMCore):
