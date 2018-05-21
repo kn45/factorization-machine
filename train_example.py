@@ -4,8 +4,7 @@
 import numpy as np
 import sys
 import tensorflow as tf
-sys.path.append('../MLFlow/utils')
-import dataproc
+import datautils
 from fm import FMRegressor
 
 INP_DIM = 18765
@@ -21,27 +20,13 @@ TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 
 
-def inp_fn(data):
-    bs = len(data)
-    x_idx = []
-    x_vals = []
-    y_vals = []
-    for i, inst in enumerate(data):
-        flds = inst.split('\t')
-        label = float(flds[0])
-        feats = sorted(map(int, flds[1:]))
-        for feat in feats:
-            x_idx.append([i, feat])
-            x_vals.append(1)
-        y_vals.append([label])
-    x_shape = [bs, INP_DIM]
-    return (x_idx, x_vals, x_shape), y_vals
+inp_fn = datautils.idx_inp_fn
+# inp_fn = datautils.libsvm_inp_fn
 
-
-freader = dataproc.BatchReader(TRAIN_FILE)
+freader = datautils.BatchReader(TRAIN_FILE)
 with open(TEST_FILE) as ftest:
     test_data = [x.rstrip('\n') for x in ftest.readlines()]
-test_x, test_y = inp_fn(test_data)
+test_x, test_y = inp_fn(test_data, INP_DIM)
 
 mdl = FMRegressor(
     inp_dim=INP_DIM,
@@ -60,7 +45,7 @@ while niter < TOTAL_ITER:
     batch_data = freader.get_batch(128)
     if not batch_data:
         break
-    train_x, train_y = inp_fn(batch_data)
+    train_x, train_y = inp_fn(batch_data, INP_DIM)
     mdl.train_step(sess, train_x, train_y)
     train_eval = mdl.eval_step(sess, train_x, train_y)
     test_eval = mdl.eval_step(sess, test_x, test_y) \
