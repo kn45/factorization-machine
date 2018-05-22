@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import numpy as np
 import sys
 import tensorflow as tf
@@ -15,7 +14,7 @@ REG_V = 0.1
 LR = 1e-4
 TOTAL_ITER = 100
 
-MDL_CKPT_DIR = './model_ckpt/model.ckpt'
+MDL_DIR = './model_ckpt/'
 TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 
@@ -36,22 +35,15 @@ mdl = FMRegressor(
     lr=LR)
 
 sess = tf.Session()
-sess.run(tf.global_variables_initializer())
-sess.run(tf.local_variables_initializer())
-niter = 0
+mdl.saver.restore(sess, tf.train.latest_checkpoint(MDL_DIR))
+print sess.run(mdl.global_step)
 
-while niter < TOTAL_ITER:
-    niter += 1
-    batch_data = freader.get_batch(128)
-    if not batch_data:
-        break
-    train_x, train_y = inp_fn(batch_data, INP_DIM)
-    mdl.train_step(sess, train_x, train_y)
-    train_eval = mdl.eval_step(sess, train_x, train_y)
-    test_eval = mdl.eval_step(sess, test_x, test_y) \
-        if niter % 1 == 0 else 'SKIP'
-    print niter, 'train:', train_eval, 'test:', test_eval
-save_path = mdl.saver.save(sess, MDL_CKPT_DIR, global_step=mdl.global_step)
-print "model saved:", save_path
+with open('train_done_test_res', 'w') as f:
+    preds = mdl.predict(sess, test_x)
+    for l, p in zip(test_y, preds):
+        print >> f, '\t'.join(map(str, [l[0], p[0]]))
+    embs = mdl.get_embedding(sess, test_x)
+    for e in embs:
+        print >> f, e
 
 sess.close()
