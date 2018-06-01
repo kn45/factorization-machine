@@ -36,7 +36,7 @@ class FMCore(object):
             self.degree2 = tf.reduce_sum(
                 tf.subtract(self.left, self.right), 1, keep_dims=True) * 0.5
         with tf.name_scope('prediction'):
-            self.preds = self.degree1 + self.degree2
+            self.scores = self.degree1 + self.degree2
         with tf.name_scope('loss/reg_loss'):
             self.reg_loss = lambda_w * tf.nn.l2_loss(self.w0) + \
                 lambda_w * tf.nn.l2_loss(self.W) + \
@@ -61,11 +61,6 @@ class FMCore(object):
             self.inp_y: inp_y}
         return sess.run(self.loss, feed_dict=eval_dict)
 
-    def _predict(self, sess, inp_x):
-        input_dict = {
-            self.inp_x: inp_x}
-        return sess.run(self.preds, feed_dict=input_dict)
-
     def get_embedding(self, sess, inp_x):
         input_dict = {
             self.inp_x: inp_x}
@@ -82,19 +77,23 @@ class FMClassifier(FMCore):
         with tf.name_scope('loss/cross_entropy'):
             self.loss = tf.reduce_mean(
                 tf.nn.sigmoid_cross_entropy_with_logits(
-                    labels=self.inp_y, logits=self.preds))
+                    labels=self.inp_y, logits=self.scores))
         with tf.name_scope('loss/total_loss'):
             self.total_loss = self.loss + self.reg_loss
         self.opt = tf.train.AdamOptimizer(lr).minimize(
             self.total_loss, global_step=self.global_step)
 
+        self.proba = tf.sigmoid(self.scores)
+
         self.auc, self.update_auc = tf.metrics.auc(
                 labels=self.inp_y,
-                predictions=self.preds,
+                predictions=self.scores,
                 num_thresholds=1000)
 
     def predict_proba(self, sess, inp_x):
-        return self._predict(sess, inp_x)
+        input_dict = {
+            self.inp_x: inp_x}
+        return sess.run(self.proba, feed_dict=input_dict)
 
     def eval_auc(self, sess, inp_x, inp_y):
         eval_dict = {
@@ -114,14 +113,16 @@ class FMRegressor(FMCore):
         self.build_graph(inp_dim, hid_dim, lambda_w, lambda_v)
         with tf.name_scope('loss/mse'):
             self.loss = tf.reduce_mean(
-                tf.square(tf.subtract(self.inp_y, self.preds)))
+                tf.square(tf.subtract(self.inp_y, self.scores)))
         with tf.name_scope('loss/total_loss'):
             self.total_loss = self.loss + self.reg_loss
         self.opt = tf.contrib.opt.LazyAdamOptimizer(lr).minimize(
             self.total_loss, global_step=self.global_step)
 
     def predict(self, sess, inp_x):
-        return self._predict(sess, inp_x)
+        input_dict = {
+            self.inp_x: inp_x}
+        return sess.run(self.scores, feed_dict=input_dict)
 
 
 if __name__ == '__main__':
