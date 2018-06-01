@@ -55,7 +55,7 @@ class FMCore(object):
         train = sess.run([self.loss, self.opt], feed_dict=input_dict)
         return train[0]
 
-    def eval_step(self, sess, inp_x, inp_y):
+    def eval_loss(self, sess, inp_x, inp_y):
         eval_dict = {
             self.inp_x: inp_x,
             self.inp_y: inp_y}
