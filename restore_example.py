@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import tensorflow as tf
 import datautils
-from fm import FMRegressor
+from fm import FMClassifier
 
 INP_DIM = 18765
 HID_DIM = 128
@@ -27,7 +27,7 @@ with open(TEST_FILE) as ftest:
     test_data = [x.rstrip('\n') for x in ftest.readlines()]
 test_x, test_y = inp_fn(test_data, INP_DIM)
 
-mdl = FMRegressor(
+mdl = FMClassifier(
     inp_dim=INP_DIM,
     hid_dim=HID_DIM,
     lambda_w=REG_W,
@@ -36,10 +36,10 @@ mdl = FMRegressor(
 
 sess = tf.Session()
 mdl.saver.restore(sess, tf.train.latest_checkpoint(MDL_DIR))
-print sess.run(mdl.global_step)
+print 'Global steps:', sess.run(mdl.global_step)
 
 with open('train_done_test_res', 'w') as f:
-    preds = mdl.predict(sess, test_x)
+    preds = mdl.predict_proba(sess, test_x)
     for l, p in zip(test_y, preds):
         print >> f, '\t'.join(map(str, [l[0], p[0]]))
     embs = mdl.get_embedding(sess, test_x)
