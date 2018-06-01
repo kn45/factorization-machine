@@ -87,7 +87,7 @@ class FMClassifier(FMCore):
 
         self.auc, self.update_auc = tf.metrics.auc(
                 labels=self.inp_y,
-                predictions=self.scores,
+                predictions=self.proba,
                 num_thresholds=1000)
 
     def predict_proba(self, sess, inp_x):
