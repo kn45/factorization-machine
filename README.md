@@ -13,12 +13,12 @@ python restore_example.py
 
 ## Functions
 - FM Core  
-  train_step(sess, input_x, input_y)
-  eval_loss(sess, input_x, input_y)
-  get_embedding(sess, input_x)
+  train_step(sess, input_x, input_y)  
+  eval_loss(sess, input_x, input_y)  
+  get_embedding(sess, input_x) 
 
 - FM Classifier  
-  predict_proba(sess, input_x)
+  predict_proba(sess, input_x)  
   eval_auc(selff, input_x, input_y)
 
 - FM Regressor  
