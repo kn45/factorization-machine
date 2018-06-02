@@ -19,7 +19,7 @@ python restore_example.py
 
 - FM Classifier  
   predict_proba(sess, input_x)  
-  eval_auc(selff, input_x, input_y)
+  eval_auc(sess, input_x, input_y)
 
 - FM Regressor  
   predict(sess, input_x)
