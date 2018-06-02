@@ -1,25 +1,26 @@
 #!/usr/bin/env python
 
-
 import numpy as np
 import sys
 import tensorflow as tf
 import datautils
 from fm import FMClassifier
 
+
+# model related
 INP_DIM = 18765
 HID_DIM = 128
 REG_W = 0.1
 REG_V = 0.1
-
+# training related
 LR = 1e-4
 MAX_ITER = 100
 EVAL_ITER = 2
-
+# dump related
 MDL_CKPT_DIR = './model_ckpt/model.ckpt'
 TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
-
+LOG_PATH = './train_log'
 
 inp_fn = datautils.idx_inp_fn
 # inp_fn = datautils.libsvm_inp_fn
@@ -37,6 +38,7 @@ mdl = FMClassifier(
     lr=LR)
 
 sess = tf.Session()
+file_writer = tf.summary.FileWriter(LOG_PATH, sess.graph)
 sess.run(tf.global_variables_initializer())
 sess.run(tf.local_variables_initializer())
 niter = 0
