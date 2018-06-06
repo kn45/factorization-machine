@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import numpy as np
 import sys
 import tensorflow as tf
@@ -36,14 +37,14 @@ mdl = FMClassifier(
 
 sess = tf.Session()
 mdl.saver.restore(sess, tf.train.latest_checkpoint(MDL_DIR))
-print 'Global steps:', sess.run(mdl.global_step)
+print('Global steps:', sess.run(mdl.global_step))
 
 with open('train_done_test_res', 'w') as f:
     preds = mdl.predict_proba(sess, test_x)
     for l, p in zip(test_y, preds):
-        print >> f, '\t'.join(map(str, [l[0], p[0]]))
+        print(*map(str, [l[0], p[0]]), sep='\t', file=f)
     embs = mdl.get_embedding(sess, test_x)
     for e in embs:
-        print >> f, e
+        print(e, file=f)
 
 sess.close()

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import numpy as np
 import sys
 import tensorflow as tf
@@ -57,8 +58,8 @@ while niter < MAX_ITER:
     else:
         test_loss = '-----'
         test_auc = '-----'
-    print niter, 'train:', train_loss, 'test_loss:', test_loss, 'test_auc:', test_auc
+    print(niter, 'train:', train_loss, 'test_loss:', test_loss, 'test_auc:', test_auc)
 save_path = mdl.saver.save(sess, MDL_CKPT_DIR, global_step=mdl.global_step)
-print "model saved:", save_path
+print('model saved:', save_path)
 
 sess.close()
