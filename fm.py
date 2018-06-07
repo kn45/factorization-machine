@@ -12,14 +12,14 @@ class FMCore(object):
         # this could achieve sparse gradient
         return tf.sparse_tensor_dense_matmul(sp_x, w, name='mul_sparse')
 
-    def _build_graph(self, inp_dim=None, hid_dim=8, lambda_w=0.0, lambda_v=0.0):
-        self.inp_x = tf.sparse_placeholder(dtype=tf.float32, name='input_x')
-        with tf.name_scope('label'):
-            self.inp_y = tf.placeholder(tf.float32, [None, 1], name='input_y')
+    def _build_graph(self, inp_dim=None, hid_dim=8, lambda_w=0.0, lambda_v=0.0, loss=None):
         self.global_step = tf.Variable(0, name='global_step', trainable=False)
-        self.w0 = tf.Variable(tf.constant(0.1, shape=[1]), name='w0')
-        const_05 = tf.constant(0.5, name='const_05')  # friendly for tensorboard
+        self.inp_x = tf.sparse_placeholder(dtype=tf.float32, name='input_x')
+        self.inp_y = tf.placeholder(tf.float32, [None, 1], name='input_y')
+
+        # forward path
         with tf.name_scope('1-way'):
+            self.w0 = tf.Variable(tf.constant(0.1, shape=[1]), name='w0')
             self.W = tf.get_variable(
                 'W', shape=[inp_dim, 1],
                 initializer=tf.contrib.layers.xavier_initializer())
@@ -40,10 +40,24 @@ class FMCore(object):
                 tf.constant(0.5, dtype=tf.float32, name='const_05')
         with tf.name_scope('prediction'):
             self.scores = self.degree1 + self.degree2
-        with tf.name_scope('loss/reg_loss'):
+
+        # loss and opt
+        with tf.name_scope('loss'):
             self.reg_loss = lambda_w * tf.nn.l2_loss(self.w0) + \
                 lambda_w * tf.nn.l2_loss(self.W) + \
                 lambda_v * tf.nn.l2_loss(self.V)
+            if loss == 'cross_entropy':
+                self.loss = tf.reduce_mean(
+                    tf.nn.sigmoid_cross_entropy_with_logits(
+                        labels=self.inp_y, logits=self.scores))
+            if loss == 'rmse':
+                self.loss = tf.reduce_mean(
+                    tf.square(tf.subtract(self.inp_y, self.scores)))
+            self.total_loss = self.loss + self.reg_loss
+        with tf.name_scope('opt'):
+            self.learning_rate = tf.placeholder(tf.float32, shape=[], name='learning_rate')
+            self.opt = tf.contrib.opt.LazyAdamOptimizer(self.learning_rate).minimize(
+                self.total_loss, global_step=self.global_step)
 
         # saver and loader
         self.saver = tf.train.Saver()
@@ -51,10 +65,11 @@ class FMCore(object):
         # get embedding vector
         self.embedding = self._sparse_mul(self.inp_x, self.V)
 
-    def train_step(self, sess, inp_x, inp_y):
+    def train_step(self, sess, inp_x, inp_y, lr=1e-3):
         input_dict = {
             self.inp_x: inp_x,
-            self.inp_y: inp_y}
+            self.inp_y: inp_y,
+            self.learning_rate: lr}
         train = sess.run([self.loss, self.opt], feed_dict=input_dict)
         return train[0]
 
@@ -73,18 +88,9 @@ class FMCore(object):
 class FMClassifier(FMCore):
     """Factorization Machine Classifier
     """
-    def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0,
-                 lr=1e-4):
+    def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
-        self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v)
-        with tf.name_scope('loss/cross_entropy'):
-            self.loss = tf.reduce_mean(
-                tf.nn.sigmoid_cross_entropy_with_logits(
-                    labels=self.inp_y, logits=self.scores))
-        with tf.name_scope('loss/total_loss'):
-            self.total_loss = self.loss + self.reg_loss
-        self.opt = tf.train.AdamOptimizer(lr).minimize(
-            self.total_loss, global_step=self.global_step)
+        self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='cross_entropy')
 
         with tf.name_scope('prediction/'):
             self.proba = tf.sigmoid(self.scores)
@@ -112,17 +118,9 @@ class FMClassifier(FMCore):
 class FMRegressor(FMCore):
     """Factorization Machine Regressor
     """
-    def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0,
-                 lr=1e-4):
+    def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
-        self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v)
-        with tf.name_scope('loss/mse'):
-            self.loss = tf.reduce_mean(
-                tf.square(tf.subtract(self.inp_y, self.scores)))
-        with tf.name_scope('loss/total_loss'):
-            self.total_loss = self.loss + self.reg_loss
-        self.opt = tf.contrib.opt.LazyAdamOptimizer(lr).minimize(
-            self.total_loss, global_step=self.global_step)
+        self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='rmse')
 
     def predict(self, sess, inp_x):
         input_dict = {

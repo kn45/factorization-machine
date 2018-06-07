@@ -13,7 +13,7 @@ python restore_example.py
 
 ## Functions
 - FM Core  
-  train_step(sess, input_x, input_y)  
+  train_step(sess, input_x, input_y, lr)  
   eval_loss(sess, input_x, input_y)  
   get_embedding(sess, input_x) 
 

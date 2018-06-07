@@ -13,9 +13,10 @@ HID_DIM = 128
 REG_W = 0.1
 REG_V = 0.1
 # training related
-LR = 1e-4
+LR = 1e-3
 MAX_ITER = 100
 EVAL_ITER = 2
+BATCH_SIZE = 128
 # dump related
 MDL_CKPT_DIR = './model_ckpt/model.ckpt'
 TRAIN_FILE = './rt-polarity.shuf.train'
@@ -34,8 +35,7 @@ mdl = FMClassifier(
     inp_dim=INP_DIM,
     hid_dim=HID_DIM,
     lambda_w=REG_W,
-    lambda_v=REG_V,
-    lr=LR)
+    lambda_v=REG_V)
 
 sess = tf.Session()
 file_writer = tf.summary.FileWriter(LOG_PATH, sess.graph)
@@ -45,12 +45,11 @@ niter = 0
 
 while niter < MAX_ITER:
     niter += 1
-    batch_data = freader.get_batch(128)
+    batch_data = freader.get_batch(BATCH_SIZE)
     if not batch_data:
         break
     train_x, train_y = inp_fn(batch_data, INP_DIM)
-    mdl.train_step(sess, train_x, train_y)
-    train_loss = mdl.eval_loss(sess, train_x, train_y)
+    train_loss = mdl.train_step(sess, train_x, train_y, lr=LR)
     if niter % EVAL_ITER == 0:
         test_loss = mdl.eval_loss(sess, test_x, test_y)
         test_auc = mdl.eval_auc(sess, test_x, test_y)
