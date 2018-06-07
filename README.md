@@ -1,6 +1,10 @@
 # Factorization Machine
 Factorization Machine in tensorflow.  
-Tested with tensorflow v1.4.1 on CPU
+Compatible with python2 and python3.  
+Tested on:  
+- tensorflow v1.4.1 & v1.8.0  
+- CPU & GPU  
+- py2.7 & py3.6
 
 ## Model Structure
 ![Model Structure](./graph.png) 
