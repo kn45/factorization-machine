@@ -32,8 +32,7 @@ mdl = FMClassifier(
     inp_dim=INP_DIM,
     hid_dim=HID_DIM,
     lambda_w=REG_W,
-    lambda_v=REG_V,
-    lr=LR)
+    lambda_v=REG_V)
 
 sess = tf.Session()
 mdl.saver.restore(sess, tf.train.latest_checkpoint(MDL_DIR))
