@@ -38,7 +38,9 @@ mdl = FMClassifier(
     lambda_w=REG_W,
     lambda_v=REG_V)
 
-sess = tf.Session()
+config = tf.ConfigProto()
+config.gpu_options.allow_growth=True
+sess = tf.Session(config=config)
 file_writer = tf.summary.FileWriter(LOG_PATH, sess.graph)
 sess.run(tf.global_variables_initializer())
 sess.run(tf.local_variables_initializer())
