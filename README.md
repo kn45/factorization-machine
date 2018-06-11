@@ -13,6 +13,7 @@ Tested on:
 ```
 python train_example.py
 python restore_example.py
+tensorboard --logdir=tensorboard_log/
 ```
 
 ## Functions

@@ -53,6 +53,7 @@ class FMCore(object):
             if loss == 'rmse':
                 self.loss = tf.reduce_mean(
                     tf.square(tf.subtract(self.inp_y, self.scores)))
+            tf.summary.scalar('loss_without_reg', self.loss)
             self.total_loss = self.loss + self.reg_loss
         with tf.name_scope('opt'):
             self.learning_rate = tf.placeholder(tf.float32, shape=[], name='learning_rate')
@@ -65,19 +66,21 @@ class FMCore(object):
         # get embedding vector
         self.embedding = self._sparse_mul(self.inp_x, self.V)
 
+        # all summary
+        self.all_summary = tf.summary.merge_all()
+
     def train_step(self, sess, inp_x, inp_y, lr=1e-3):
         input_dict = {
             self.inp_x: inp_x,
             self.inp_y: inp_y,
             self.learning_rate: lr}
-        train = sess.run([self.loss, self.opt], feed_dict=input_dict)
-        return train[0]
+        return sess.run([self.all_summary, self.loss, self.opt], feed_dict=input_dict)
 
     def eval_loss(self, sess, inp_x, inp_y):
         eval_dict = {
             self.inp_x: inp_x,
             self.inp_y: inp_y}
-        return sess.run(self.loss, feed_dict=eval_dict)
+        return sess.run([self.all_summary, self.loss], feed_dict=eval_dict)
 
     def get_embedding(self, sess, inp_x):
         input_dict = {

@@ -22,7 +22,7 @@ BATCH_SIZE = 128
 MDL_CKPT_DIR = './model_ckpt/model.ckpt'
 TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
-LOG_PATH = './train_log'
+LOG_PATH = './tensorboard_log'
 
 inp_fn = datautils.idx_inp_fn
 # inp_fn = datautils.libsvm_inp_fn
@@ -38,14 +38,20 @@ mdl = FMClassifier(
     lambda_w=REG_W,
     lambda_v=REG_V)
 
+# init session
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 sess = tf.Session(config=config)
-file_writer = tf.summary.FileWriter(LOG_PATH, sess.graph)
+
+# init tensorboard writer
+train_writer = tf.summary.FileWriter(LOG_PATH + '/train', sess.graph)
+test_writer = tf.summary.FileWriter(LOG_PATH + '/test')
+
+# init variables
 sess.run(tf.global_variables_initializer())
 sess.run(tf.local_variables_initializer())
-niter = 0
 
+niter = 0
 while niter < MAX_ITER:
     niter += 1
     batch_data = freader.get_batch(BATCH_SIZE)
