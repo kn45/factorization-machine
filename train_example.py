@@ -5,7 +5,7 @@ import numpy as np
 import sys
 import tensorflow as tf
 import datautils
-from fm import FMClassifier
+from fm import FMClassifier, FMRegressor
 
 
 # model related
