@@ -53,7 +53,7 @@ class FMCore(object):
             if loss == 'rmse':
                 self.loss = tf.reduce_mean(
                     tf.square(tf.subtract(self.inp_y, self.scores)))
-            tf.summary.scalar('loss_without_reg', self.loss)
+            self.summary_loss = tf.summary.scalar('loss_without_reg', self.loss)
             self.total_loss = self.loss + self.reg_loss
         with tf.name_scope('opt'):
             self.learning_rate = tf.placeholder(tf.float32, shape=[], name='learning_rate')
@@ -66,21 +66,19 @@ class FMCore(object):
         # get embedding vector
         self.embedding = self._sparse_mul(self.inp_x, self.V)
 
-        # all summary
-        self.all_summary = tf.summary.merge_all()
 
     def train_step(self, sess, inp_x, inp_y, lr=1e-3):
         input_dict = {
             self.inp_x: inp_x,
             self.inp_y: inp_y,
             self.learning_rate: lr}
-        return sess.run([self.all_summary, self.loss, self.opt], feed_dict=input_dict)
+        return sess.run([self.summary_loss, self.loss, self.opt], feed_dict=input_dict)
 
     def eval_loss(self, sess, inp_x, inp_y):
         eval_dict = {
             self.inp_x: inp_x,
             self.inp_y: inp_y}
-        return sess.run([self.all_summary, self.loss], feed_dict=eval_dict)
+        return sess.run([self.summary_loss, self.loss], feed_dict=eval_dict)
 
     def get_embedding(self, sess, inp_x):
         input_dict = {
@@ -94,15 +92,15 @@ class FMClassifier(FMCore):
     def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
         self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='cross_entropy')
-
         with tf.name_scope('prediction/'):
             self.proba = tf.sigmoid(self.scores)
-
         with tf.name_scope('metrics'):
             self.auc, self.update_auc = tf.metrics.auc(
                 labels=self.inp_y,
                 predictions=self.proba,
                 num_thresholds=1000)
+        # all summary
+        self.all_summary = tf.summary.merge_all()
 
     def predict_proba(self, sess, inp_x):
         input_dict = {
@@ -124,6 +122,8 @@ class FMRegressor(FMCore):
     def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
         self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='rmse')
+        # all summary
+        self.all_summary = tf.summary.merge_all()
 
     def predict(self, sess, inp_x):
         input_dict = {

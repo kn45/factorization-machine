@@ -58,12 +58,12 @@ while niter < MAX_ITER:
     if not batch_data:
         break
     train_x, train_y = inp_fn(batch_data, INP_DIM)
-    train_summary, train_loss, _ = mdl.train_step(sess, train_x, train_y, lr=LR)
-    train_writer.add_summary(train_summary, niter)
+    train_summary_loss, train_loss, _ = mdl.train_step(sess, train_x, train_y, lr=LR)
+    train_writer.add_summary(train_summary_loss, niter)
     if niter % EVAL_ITER == 0:
-        test_summary, test_loss = mdl.eval_loss(sess, test_x, test_y)
+        test_summary_loss, test_loss = mdl.eval_loss(sess, test_x, test_y)
         test_auc = mdl.eval_auc(sess, test_x, test_y)
-        test_writer.add_summary(test_summary, niter)
+        test_writer.add_summary(test_summary_loss, niter)
     else:
         test_loss = '-----'
         test_auc = '-----'
