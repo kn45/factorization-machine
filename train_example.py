@@ -61,9 +61,13 @@ while niter < MAX_ITER:
     train_summary_loss, train_loss, _ = mdl.train_step(sess, train_x, train_y, lr=LR)
     train_writer.add_summary(train_summary_loss, niter)
     if niter % EVAL_ITER == 0:
-        test_summary_loss, test_loss = mdl.eval_loss(sess, test_x, test_y)
-        test_auc = mdl.eval_auc(sess, test_x, test_y)
-        test_writer.add_summary(test_summary_loss, niter)
+        # each metric could be evaluated separately
+        # test_summary_loss, test_loss = mdl.eval_loss(sess, test_x, test_y)
+        # test_summary_auc, test_auc = mdl.eval_auc(sess, test_x, test_y)
+        # test_writer.add_summary(test_summary_loss, niter)
+        # test_writer.add_summary(test_summary_auc, niter)
+        test_summary, test_loss, test_auc = mdl.eval_metrics(sess, test_x, test_y)
+        test_writer.add_summary(test_summary, niter)
     else:
         test_loss = '-----'
         test_auc = '-----'

@@ -91,6 +91,7 @@ class FMClassifier(FMCore):
     """
     def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
+        self._task = 'classification'
         self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='cross_entropy')
         with tf.name_scope('prediction/'):
             self.proba = tf.sigmoid(self.scores)
@@ -99,8 +100,9 @@ class FMClassifier(FMCore):
                 labels=self.inp_y,
                 predictions=self.proba,
                 num_thresholds=1000)
-        # all summary
-        self.all_summary = tf.summary.merge_all()
+            self.summary_auc = tf.summary.scalar('AUC', self.auc)
+            # all summary
+            self.summary_all = tf.summary.merge_all()
 
     def predict_proba(self, sess, inp_x):
         input_dict = {
@@ -113,7 +115,15 @@ class FMClassifier(FMCore):
             self.inp_y: inp_y}
         sess.run(tf.local_variables_initializer())
         sess.run(self.update_auc, feed_dict=eval_dict)
-        return sess.run(self.auc)
+        return sess.run([self.summary_auc, self.auc])
+
+    def eval_metrics(self, sess, inp_x, inp_y):
+        eval_dict = {
+            self.inp_x: inp_x,
+            self.inp_y: inp_y}
+        sess.run(tf.local_variables_initializer())
+        sess.run(self.update_auc, feed_dict=eval_dict)
+        return sess.run([self.summary_all, self.loss, self.auc], feed_dict=eval_dict)
 
 
 class FMRegressor(FMCore):
@@ -121,14 +131,22 @@ class FMRegressor(FMCore):
     """
     def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
+        self._task = 'regression'
         self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='rmse')
-        # all summary
-        self.all_summary = tf.summary.merge_all()
+        with tf.name_scope('metrics'):
+            # all summary
+            self.summary_all = tf.summary.merge_all()
 
     def predict(self, sess, inp_x):
         input_dict = {
             self.inp_x: inp_x}
         return sess.run(self.scores, feed_dict=input_dict)
+
+    def eval_metrics(self, sess, inp_x, inp_y):
+        eval_dict = {
+            self.inp_x: inp_x,
+            self.inp_y: inp_y}
+        return sess.run([self.summary_all, self.loss], feed_dict=eval_dict)
 
 
 if __name__ == '__main__':
