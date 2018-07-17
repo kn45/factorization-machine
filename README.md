@@ -7,7 +7,7 @@ Tested on:
 - py2.7 & py3.6
 
 ## Model Structure
-![Model Structure](./graph.png) 
+![Model Structure](graph.png)
 
 ## Example
 ```
