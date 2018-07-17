@@ -11,11 +11,11 @@ from fm import FMClassifier, FMRegressor
 # model related
 INP_DIM = 18765
 HID_DIM = 128
-REG_W = 0.1
-REG_V = 0.1
+REG_W = 0.0
+REG_V = 0.0
 # training related
-LR = 1e-3
-MAX_ITER = 100
+LR = 1e-4
+MAX_ITER = 1000
 EVAL_ITER = 2
 BATCH_SIZE = 128
 # dump related
@@ -40,8 +40,8 @@ mdl = FMClassifier(
 
 # init session
 config = tf.ConfigProto()
-config.gpu_options.allow_growth=True
-# config.gpu_options.per_process_gpu_memory_fraction=0.333
+config.gpu_options.allow_growth = True
+# config.gpu_options.per_process_gpu_memory_fraction = 0.333
 sess = tf.Session(config=config)
 
 # init tensorboard writer
