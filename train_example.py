@@ -9,12 +9,12 @@ from fm import FMClassifier, FMRegressor
 
 
 # model related
-INP_DIM = 18765
-HID_DIM = 128
+INPUT_DIM = 18765
+HIDDEN_DIM = 128
 REG_W = 0.0
 REG_V = 0.0
 # training related
-LR = 1e-4
+LEARNING_RATE = 1e-3
 MAX_ITER = 1000
 EVAL_ITER = 2
 BATCH_SIZE = 128
@@ -24,17 +24,17 @@ TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 LOG_PATH = './tensorboard_log'
 
-inp_fn = datautils.idx_inp_fn
-# inp_fn = datautils.libsvm_inp_fn
+feed_fn = datautils.idx_inp_fn
+# feed_fn = datautils.libsvm_inp_fn
 
-freader = datautils.BatchReader(TRAIN_FILE)
+train_reader = datautils.BatchReader(TRAIN_FILE)
 with open(TEST_FILE) as ftest:
     test_data = [x.rstrip('\n') for x in ftest.readlines()]
-test_x, test_y = inp_fn(test_data, INP_DIM)
+test_x, test_y = feed_fn(test_data, INPUT_DIM)
 
 mdl = FMClassifier(
-    inp_dim=INP_DIM,
-    hid_dim=HID_DIM,
+    input_dim=INPUT_DIM,
+    hidden_dim=HIDDEN_DIM,
     lambda_w=REG_W,
     lambda_v=REG_V)
 
@@ -55,11 +55,11 @@ sess.run(tf.local_variables_initializer())
 niter = 0
 while niter < MAX_ITER:
     niter += 1
-    batch_data = freader.get_batch(BATCH_SIZE)
+    batch_data = train_reader.get_batch(BATCH_SIZE)
     if not batch_data:
         break
-    train_x, train_y = inp_fn(batch_data, INP_DIM)
-    train_summary_loss, train_loss, _ = mdl.train_step(sess, train_x, train_y, lr=LR)
+    train_x, train_y = feed_fn(batch_data, INPUT_DIM)
+    train_summary_loss, train_loss, _ = mdl.train_step(sess, train_x, train_y, lr=LEARNING_RATE)
     train_writer.add_summary(train_summary_loss, niter)
     if niter % EVAL_ITER == 0:
         # each metric could be evaluated separately

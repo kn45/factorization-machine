@@ -12,7 +12,7 @@ class FMCore(object):
         # this could achieve sparse gradient
         return tf.sparse_tensor_dense_matmul(sp_x, w, name='mul_sparse')
 
-    def _build_graph(self, inp_dim=None, hid_dim=8, lambda_w=0.0, lambda_v=0.0, loss=None):
+    def _build_graph(self, input_dim=None, hidden_dim=8, lambda_w=0.0, lambda_v=0.0, loss=None):
         self.global_step = tf.Variable(0, name='global_step', trainable=False)
         self.inp_x = tf.sparse_placeholder(dtype=tf.float32, name='input_x')
         self.inp_y = tf.placeholder(tf.float32, [None, 1], name='input_y')
@@ -21,17 +21,17 @@ class FMCore(object):
         with tf.name_scope('1-way'):
             self.w0 = tf.Variable(tf.constant(0.1, shape=[1]), name='w0')
             self.W = tf.get_variable(
-                'W', shape=[inp_dim, 1],
+                'W', shape=[input_dim, 1],
                 initializer=tf.contrib.layers.xavier_initializer())
             self.degree1 = self._sparse_mul(self.inp_x, self.W) + self.w0
         with tf.name_scope('2-way'):
             self.V = tf.get_variable(
-                'V', shape=[inp_dim, hid_dim],
+                'V', shape=[input_dim, hidden_dim],
                 initializer=tf.contrib.layers.xavier_initializer())
             with tf.name_scope('2-way_left'):
                 self.left = tf.pow(
                     self._sparse_mul(self.inp_x, self.V),
-                    tf.constant(2, dtype=tf.float32, name='const_2'))  # (bs, hid_dim)
+                    tf.constant(2, dtype=tf.float32, name='const_2'))  # (bs, hidden_dim)
             with tf.name_scope('2-way_right'):
                 # use tf.square supporting sparse_pow(x, 2)
                 self.right = self._sparse_mul(
@@ -89,10 +89,10 @@ class FMCore(object):
 class FMClassifier(FMCore):
     """Factorization Machine Classifier
     """
-    def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
+    def __init__(self, input_dim=None, hidden_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
         self._task = 'classification'
-        self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='cross_entropy')
+        self._build_graph(input_dim, hidden_dim, lambda_w, lambda_v, loss='cross_entropy')
         with tf.name_scope('prediction/'):
             self.proba = tf.sigmoid(self.scores)
         with tf.name_scope('metrics'):
@@ -129,10 +129,10 @@ class FMClassifier(FMCore):
 class FMRegressor(FMCore):
     """Factorization Machine Regressor
     """
-    def __init__(self, inp_dim=None, hid_dim=16, lambda_w=0.0, lambda_v=0.0):
+    def __init__(self, input_dim=None, hidden_dim=16, lambda_w=0.0, lambda_v=0.0):
         # init graph from input to predict y_hat
         self._task = 'regression'
-        self._build_graph(inp_dim, hid_dim, lambda_w, lambda_v, loss='rmse')
+        self._build_graph(input_dim, hidden_dim, lambda_w, lambda_v, loss='rmse')
         with tf.name_scope('metrics'):
             # all summary
             self.summary_all = tf.summary.merge_all()

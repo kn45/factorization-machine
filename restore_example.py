@@ -7,12 +7,12 @@ import tensorflow as tf
 import datautils
 from fm import FMClassifier, FMRegressor
 
-INP_DIM = 18765
-HID_DIM = 128
+INPUT_DIM = 18765
+HIDDEN_DIM = 128
 REG_W = 0.1
 REG_V = 0.1
 
-LR = 1e-4
+LEARNING_RATE = 1e-4
 TOTAL_ITER = 100
 
 MDL_DIR = './model_ckpt/'
@@ -20,17 +20,17 @@ TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 
 
-inp_fn = datautils.idx_inp_fn
-# inp_fn = datautils.libsvm_inp_fn
+feed_fn = datautils.idx_inp_fn
+# feed_fn = datautils.libsvm_inp_fn
 
 freader = datautils.BatchReader(TRAIN_FILE)
 with open(TEST_FILE) as ftest:
     test_data = [x.rstrip('\n') for x in ftest.readlines()]
-test_x, test_y = inp_fn(test_data, INP_DIM)
+test_x, test_y = feed_fn(test_data, INPUT_DIM)
 
 mdl = FMClassifier(
-    inp_dim=INP_DIM,
-    hid_dim=HID_DIM,
+    input_dim=INPUT_DIM,
+    hidden_dim=HIDDEN_DIM,
     lambda_w=REG_W,
     lambda_v=REG_V)
 
