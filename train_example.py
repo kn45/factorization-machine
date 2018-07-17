@@ -23,15 +23,15 @@ MDL_CKPT_DIR = './model_ckpt/model.ckpt'
 TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 LOG_PATH = './tensorboard_log'
-
+# feed function related
 feed_fn = datautils.idx_inp_fn
 # feed_fn = datautils.libsvm_inp_fn
 
+# train data and test data
 train_reader = datautils.BatchReader(TRAIN_FILE)
-with open(TEST_FILE) as ftest:
-    test_data = [x.rstrip('\n') for x in ftest.readlines()]
-test_x, test_y = feed_fn(test_data, INPUT_DIM)
+test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()], INPUT_DIM)
 
+# define model
 mdl = FMClassifier(
     input_dim=INPUT_DIM,
     hidden_dim=HIDDEN_DIM,
