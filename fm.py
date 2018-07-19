@@ -66,7 +66,6 @@ class FMCore(object):
         # get embedding vector
         self.embedding = self._sparse_mul(self.inp_x, self.V)
 
-
     def train_step(self, sess, inp_x, inp_y, lr=1e-3):
         input_dict = {
             self.inp_x: inp_x,
