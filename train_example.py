@@ -15,11 +15,12 @@ REG_W = 0.0
 REG_V = 0.0
 # training related
 LEARNING_RATE = 1e-3
-MAX_ITER = 1000
+MAX_ITER = 200
 EVAL_ITER = 2
 BATCH_SIZE = 128
 # dump related
 MDL_CKPT_DIR = './model_ckpt/model.ckpt'
+MDL_CMPT_DIR = './model_cmpt/model.ckpt'
 TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 LOG_PATH = './tensorboard_log'
@@ -32,7 +33,7 @@ train_reader = datautils.BatchReader(TRAIN_FILE)
 test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()], INPUT_DIM)
 
 # define model
-mdl = FMClassifier(
+model_ = FMClassifier(
     input_dim=INPUT_DIM,
     hidden_dim=HIDDEN_DIM,
     lambda_w=REG_W,
@@ -59,21 +60,22 @@ while niter < MAX_ITER:
     if not batch_data:
         break
     train_x, train_y = feed_fn(batch_data, INPUT_DIM)
-    train_summary_loss, train_loss, _ = mdl.train_step(sess, train_x, train_y, lr=LEARNING_RATE)
+    train_summary_loss, train_loss, _ = model_.train_step(sess, train_x, train_y, lr=LEARNING_RATE)
     train_writer.add_summary(train_summary_loss, niter)
     if niter % EVAL_ITER == 0:
         # each metric could be evaluated separately
-        # test_summary_loss, test_loss = mdl.eval_loss(sess, test_x, test_y)
-        # test_summary_auc, test_auc = mdl.eval_auc(sess, test_x, test_y)
+        # test_summary_loss, test_loss = model_.eval_loss(sess, test_x, test_y)
+        # test_summary_auc, test_auc = model_.eval_auc(sess, test_x, test_y)
         # test_writer.add_summary(test_summary_loss, niter)
         # test_writer.add_summary(test_summary_auc, niter)
-        test_summary, test_loss, test_auc = mdl.eval_metrics(sess, test_x, test_y)
+        test_summary, test_loss, test_auc = model_.eval_metrics(sess, test_x, test_y)
         test_writer.add_summary(test_summary, niter)
     else:
         test_loss = '-----'
         test_auc = '-----'
     print(niter, 'train:', train_loss, 'test_loss:', test_loss, 'test_auc:', test_auc)
-save_path = mdl.saver.save(sess, MDL_CKPT_DIR, global_step=mdl.global_step)
+save_path = model_.ckpt_saver.save(sess, MDL_CKPT_DIR, global_step=model_.global_step)
+save_path = model_.saver.save(sess, MDL_CMPT_DIR, global_step=model_.global_step)
 print('model saved:', save_path)
 
 sess.close()

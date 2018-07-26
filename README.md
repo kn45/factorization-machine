@@ -18,9 +18,12 @@ tensorboard --logdir=tensorboard_log/
 
 ## Functions
 - FM Core  
-  train_step(sess, input_x, input_y, lr)  
-  eval_loss(sess, input_x, input_y)  
-  get_embedding(sess, input_x) 
+  train\_step(sess, input\_x, input\_y, lr)  
+  eval\_loss(sess, input\_x, input\_y)  
+  eval\_metrics(sess, input\_x, input\_y)
+  get\_embedding(sess, input\_x)  
+  saver(): saver for model only  
+  ckpt\_saver(): saver for all the variables(including opt etc.)  
 
 - FM Classifier  
   predict_proba(sess, input_x)  

@@ -61,7 +61,8 @@ class FMCore(object):
                 self.total_loss, global_step=self.global_step)
 
         # saver and loader
-        self.saver = tf.train.Saver()
+        self.ckpt_saver = tf.train.Saver()
+        self.saver = tf.train.Saver(tf.trainable_variables() + [self.global_step])
 
         # get embedding vector
         self.embedding = self._sparse_mul(self.inp_x, self.V)
