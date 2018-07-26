@@ -26,11 +26,11 @@ tensorboard --logdir=tensorboard_log/
   ckpt\_saver(): saver for all the variables(including opt etc.)  
 
 - FM Classifier  
-  predict_proba(sess, input_x)  
-  eval_auc(sess, input_x, input_y)
+  predict\_proba(sess, input\_x)  
+  eval\_auc(sess, input\_x, input\_y)
 
 - FM Regressor  
-  predict(sess, input_x)
+  predict(sess, input\_x)
 
 
 ## Reference:
