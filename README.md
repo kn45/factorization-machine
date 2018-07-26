@@ -20,7 +20,7 @@ tensorboard --logdir=tensorboard_log/
 - FM Core  
   train\_step(sess, input\_x, input\_y, lr)  
   eval\_loss(sess, input\_x, input\_y)  
-  eval\_metrics(sess, input\_x, input\_y)
+  eval\_metrics(sess, input\_x, input\_y)  
   get\_embedding(sess, input\_x)  
   saver(): saver for model only  
   ckpt\_saver(): saver for all the variables(including opt etc.)  
