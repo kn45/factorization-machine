@@ -62,7 +62,9 @@ class FMCore(object):
 
         # saver and loader
         self.ckpt_saver = tf.train.Saver()
-        self.saver = tf.train.Saver(tf.trainable_variables() + [self.global_step])
+        self.saver = tf.train.Saver(
+            var_list=tf.trainable_variables() + [self.global_step],
+            max_to_keep=1)
 
         # get embedding vector
         self.embedding = self._sparse_mul(self.inp_x, self.V)
