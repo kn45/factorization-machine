@@ -17,7 +17,7 @@ class FMCore(object):
         return dense matrix
         """
         # this could achieve sparse gradient
-        return tf.nn.embedding_lookup_sparse(w, x_ids, None, name='mul_sparse')
+        return tf.nn.embedding_lookup_sparse(w, x_ids, None, combiner='sum', name='mul_sparse')
 
     def _build_graph(self, input_dim=None, hidden_dim=8, lambda_w=0.0, lambda_v=0.0, loss=None):
         self.global_step = tf.Variable(0, name='global_step', trainable=False)
