@@ -25,7 +25,7 @@ TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 LOG_PATH = './tensorboard_log'
 # feed function related
-feed_fn = datautils.seq_inp_fn
+feed_fn = datautils.sequence_input_func
 
 # train data and test data
 train_reader = datautils.BatchReader(TRAIN_FILE)
