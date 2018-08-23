@@ -1,27 +1,19 @@
-# -*- coding=utf-8 -*-
-import copy
-import numpy as np
-import sys
-from operator import itemgetter
-
-
 class BatchReader(object):
     """Get batch data recurrently from a file.
     """
-    def __init__(self, file_name, max_epoch=None):
+    def __init__(self, file_name, max_epoch=None, batch_size=None):
         self.fname = file_name
         self.max_epoch = max_epoch
+        self.default_batch_size = batch_size
         self.nepoch = 0
         self.fp = None
 
     def __del__(self):
-        if self.fp:
+        if self.fp is not None:
             self.fp.close()
 
-    def get_batch(self, batch_size, out=None):
-        if out is None:
-            out = []
-        if not self.fp:
+    def _get_batch(self, batch_size, out):
+        if self.fp is None:
             if (not self.max_epoch) or self.nepoch < self.max_epoch:
                 # if max_epoch not set or num_epoch not reach the limit
                 self.fp = open(self.fname)
@@ -35,8 +27,24 @@ class BatchReader(object):
         else:
             self.fp.close()
             self.fp = None
-            return self.get_batch(batch_size, out)
+            return self._get_batch(batch_size, out)
         return out
+
+    def get_batch(self, batch_size=None):
+        if batch_size is None:
+            batch_size = self.default_batch_size
+        return self._get_batch(batch_size, [])
+
+    def __next__(self):
+        data = self.get_batch()
+        if not data:
+            raise StopIteration
+        return data
+
+    def __iter__(self):
+        return self
+
+    next = __next__
 
 
 def sequence_input_func(data):
@@ -82,19 +90,3 @@ def libsvm_input_func(data):
         y_vals.append([label])
     x_shape = [bs, mex_len]
     return (x_idx, x_vals1, x_shape), (x_idx, x_vals2, x_shape), y_vals
-
-
-def draw_progress(iteration, total, pref='Progress:', suff='',
-                  decimals=1, barlen=50):
-    """Call in a loop to create terminal progress bar
-    """
-    formatStr = "{0:." + str(decimals) + "f}"
-    pcts = formatStr.format(100 * (iteration / float(total)))
-    filledlen = int(round(barlen * iteration / float(total)))
-    bar = '█' * filledlen + '-' * (barlen - filledlen)
-    out_str = '\r%s |%s| %s%s %s' % (pref, bar, pcts, '%', suff)
-    out_str = '\x1b[0;34;40m' + out_str + '\x1b[0m'
-    sys.stderr.write(out_str),
-    if iteration == total:
-        sys.stderr.write('\n')
-    sys.stderr.flush()

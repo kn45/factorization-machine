@@ -28,7 +28,7 @@ LOG_PATH = './tensorboard_log'
 feed_fn = datautils.sequence_input_func
 
 # train data and test data
-train_reader = datautils.BatchReader(TRAIN_FILE)
+train_reader = datautils.BatchReader(TRAIN_FILE, batch_size=BATCH_SIZE)
 test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()])
 
 # define model
@@ -52,11 +52,8 @@ test_writer = tf.summary.FileWriter(LOG_PATH + '/test')
 sess.run(tf.global_variables_initializer())
 sess.run(tf.local_variables_initializer())
 
-niter = 0
-while niter < MAX_ITER:
-    niter += 1
-    batch_data = train_reader.get_batch(BATCH_SIZE)
-    if not batch_data:
+for niter, batch_data in enumerate(train_reader):
+    if niter >= MAX_ITER:
         break
     train_x, train_y = feed_fn(batch_data)
     train_summary_loss, train_loss, _ = model_.train_step(sess, train_x, train_y, lr=LEARNING_RATE)
