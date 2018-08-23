@@ -39,24 +39,7 @@ class BatchReader(object):
         return out
 
 
-def idx_inp_fn(data, dim):
-    bs = len(data)
-    x_idx = []
-    x_vals = []
-    y_vals = []
-    for i, inst in enumerate(data):
-        flds = inst.split('\t')
-        label = float(flds[0])
-        feats = sorted(map(int, flds[1:]))
-        for feat in feats:
-            x_idx.append([i, feat])
-            x_vals.append(1)
-        y_vals.append([label])
-    x_shape = [bs, dim]
-    return (x_idx, x_vals, x_shape), y_vals
-
-
-def seq_inp_fn(data):
+def sequence_input_func(data):
     bs = len(data)
     max_len = 0
     x_idx = []
@@ -76,24 +59,29 @@ def seq_inp_fn(data):
     return (x_idx, x_vals, x_shape), y_vals
 
 
-def libsvm_inp_fn(data, dim):
+def libsvm_input_func(data):
     bs = len(data)
+    max_len = 0
     x_idx = []
-    x_vals = []
+    x_vals1 = []
+    x_vals2 = []
     y_vals = []
     for i, inst in enumerate(data):
         flds = inst.split(' ')
         label = float(flds[0])
         feats = flds[1:]
-        for feat in feats:
+        if len(feats) > max_len:
+            max_len = len(feats)
+        for col, feat in enumerate(feats):
             idx, val = feat.split(':')
             idx = int(idx)
             val = float(val)
-            x_idx.append([i, idx])
-            x_vals.append(val)
+            x_idx.append([i, col])
+            x_vals1.append(feat)
+            x_vals2.append(val)
         y_vals.append([label])
-    x_shape = [bs, dim]
-    return (x_idx, x_vals, x_shape), y_vals
+    x_shape = [bs, mex_len]
+    return (x_idx, x_vals1, x_shape), (x_idx, x_vals2, x_shape), y_vals
 
 
 def draw_progress(iteration, total, pref='Progress:', suff='',
