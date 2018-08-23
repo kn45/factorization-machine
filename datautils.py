@@ -56,6 +56,26 @@ def idx_inp_fn(data, dim):
     return (x_idx, x_vals, x_shape), y_vals
 
 
+def seq_inp_fn(data):
+    bs = len(data)
+    max_len = 0
+    x_idx = []
+    x_vals = []
+    y_vals = []
+    for i, inst in enumerate(data):
+        flds = inst.split('\t')
+        label = float(flds[0])
+        feats = sorted(map(int, flds[1:]))
+        if len(feats) > max_len:
+            max_len = len(feats)
+        for col, feat in enumerate(feats):
+            x_idx.append([i, col])
+            x_vals.append(feat)
+        y_vals.append([label])
+    x_shape = [bs, max_len]
+    return (x_idx, x_vals, x_shape), y_vals
+
+
 def libsvm_inp_fn(data, dim):
     bs = len(data)
     x_idx = []
