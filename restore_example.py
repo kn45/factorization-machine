@@ -22,7 +22,7 @@ TEST_FILE = './rt-polarity.shuf.test'
 feed_fn = datautils.seq_inp_fn
 
 # read test data
-test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()], INPUT_DIM)
+test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()])
 
 model_ = FMClassifier(
     input_dim=INPUT_DIM,
