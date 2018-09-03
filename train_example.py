@@ -25,11 +25,12 @@ TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 LOG_PATH = './tensorboard_log'
 # feed function related
-feed_fn = datautils.sequence_input_func
+feed_fn = datautils.idx_inp_fn
+# feed_fn = datautils.libsvm_inp_fn
 
 # train data and test data
-train_reader = datautils.BatchReader(TRAIN_FILE, batch_size=BATCH_SIZE)
-test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()])
+train_reader = datautils.BatchReader(TRAIN_FILE)
+test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()], INPUT_DIM)
 
 # define model
 model_ = FMClassifier(
@@ -52,10 +53,13 @@ test_writer = tf.summary.FileWriter(LOG_PATH + '/test')
 sess.run(tf.global_variables_initializer())
 sess.run(tf.local_variables_initializer())
 
-for niter, batch_data in enumerate(train_reader):
-    if niter >= MAX_ITER:
+niter = 0
+while niter < MAX_ITER:
+    niter += 1
+    batch_data = train_reader.get_batch(BATCH_SIZE)
+    if not batch_data:
         break
-    train_x, train_y = feed_fn(batch_data)
+    train_x, train_y = feed_fn(batch_data, INPUT_DIM)
     train_summary_loss, train_loss, _ = model_.train_step(sess, train_x, train_y, lr=LEARNING_RATE)
     train_writer.add_summary(train_summary_loss, niter)
     if niter % EVAL_ITER == 0:

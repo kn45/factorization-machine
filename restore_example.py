@@ -19,10 +19,11 @@ MDL_CMPT_DIR = './model_ckpt/'
 TRAIN_FILE = './rt-polarity.shuf.train'
 TEST_FILE = './rt-polarity.shuf.test'
 # feed function related
-feed_fn = datautils.sequence_input_func
+feed_fn = datautils.idx_inp_fn
+# feed_fn = datautils.libsvm_inp_fn
 
 # read test data
-test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()])
+test_x, test_y = feed_fn([x.rstrip('\n') for x in open(TEST_FILE).readlines()], INPUT_DIM)
 
 model_ = FMClassifier(
     input_dim=INPUT_DIM,

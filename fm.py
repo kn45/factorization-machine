@@ -12,16 +12,9 @@ class FMCore(object):
         # this could achieve sparse gradient
         return tf.sparse_tensor_dense_matmul(sp_x, w, name='mul_sparse')
 
-    def _sparse_ids_mul(self, x_ids, w):
-        """dense_res = sparse_x * dense_w
-        return dense matrix
-        """
-        # this could achieve sparse gradient
-        return tf.nn.embedding_lookup_sparse(w, x_ids, None, combiner='sum', name='mul_sparse')
-
     def _build_graph(self, input_dim=None, hidden_dim=8, lambda_w=0.0, lambda_v=0.0, loss=None):
         self.global_step = tf.Variable(0, name='global_step', trainable=False)
-        self.inp_x = tf.sparse_placeholder(dtype=tf.int64, name='input_x')
+        self.inp_x = tf.sparse_placeholder(dtype=tf.float32, name='input_x')
         self.inp_y = tf.placeholder(tf.float32, [None, 1], name='input_y')
 
         # forward path
@@ -30,16 +23,19 @@ class FMCore(object):
             self.W = tf.get_variable(
                 'W', shape=[input_dim, 1],
                 initializer=tf.contrib.layers.xavier_initializer())
-            self.degree1 = self._sparse_ids_mul(self.inp_x, self.W) + self.w0
+            self.degree1 = self._sparse_mul(self.inp_x, self.W) + self.w0
         with tf.name_scope('2-way'):
             self.V = tf.get_variable(
                 'V', shape=[input_dim, hidden_dim],
                 initializer=tf.contrib.layers.xavier_initializer())
             with tf.name_scope('2-way_left'):
-                self.left = tf.square(self._sparse_ids_mul(self.inp_x, self.V))
+                self.left = tf.pow(
+                    self._sparse_mul(self.inp_x, self.V),
+                    tf.constant(2, dtype=tf.float32, name='const_2'))  # (bs, hidden_dim)
             with tf.name_scope('2-way_right'):
-                # value of input sequence are all 1, so square(input) = input
-                self.right = self._sparse_ids_mul(self.inp_x, tf.square(self.V))
+                # use tf.square supporting sparse_pow(x, 2)
+                self.right = self._sparse_mul(
+                    tf.square(self.inp_x), tf.pow(self.V, 2))
             self.degree2 = tf.reduce_sum(tf.subtract(self.left, self.right), 1, keep_dims=True) * \
                 tf.constant(0.5, dtype=tf.float32, name='const_05')
         with tf.name_scope('prediction'):
@@ -71,7 +67,7 @@ class FMCore(object):
             max_to_keep=1)
 
         # get embedding vector
-        self.embedding = self._sparse_ids_mul(self.inp_x, self.V)
+        self.embedding = self._sparse_mul(self.inp_x, self.V)
 
     def train_step(self, sess, inp_x, inp_y, lr=1e-3):
         input_dict = {
