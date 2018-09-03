@@ -67,6 +67,23 @@ def sequence_input_func(data):
     return (x_idx, x_vals, x_shape), y_vals
 
 
+def index_input_func(data, dim):
+    bs = len(data)
+    x_idx = []
+    x_vals = []
+    y_vals = []
+    for i, inst in enumerate(data):
+        flds = inst.split('\t')
+        label = float(flds[0])
+        feats = sorted(map(int, flds[1:]))
+        for feat in feats:
+            x_idx.append([i, feat])
+            x_vals.append(1)
+        y_vals.append([label])
+    x_shape = [bs, dim]
+    return (x_idx, x_vals, x_shape), y_vals
+
+
 def libsvm_input_func(data):
     bs = len(data)
     max_len = 0
